@@ -1,0 +1,93 @@
+\documentclass{jarticle}
+\usepackage{listings}
+\lstset{
+  basicstyle={\ttfamily},
+  frame={tb}
+}
+
+\title{計算機システム演習　第５回レポート}
+\author{17B13541 \and 細木隆豊}
+\date{}
+
+\begin{document}
+\maketitle
+  \section{実行結果}
+    \begin{lstlisting}
+    AND(0, 0) => 0
+    AND(0, 1) => 0
+    AND(1, 0) => 0
+    AND(1, 1) => 1
+    OR(0, 0) => 0
+    OR(0, 1) => 1
+    OR(1, 0) => 1
+    OR(1, 1) => 1
+    NOT(0) => 1
+    NOT(1) => 0
+    NAND(0, 0) => 1
+    NAND(0, 1) => 1
+    NAND(1, 0) => 1
+    NAND(1, 1) => 0
+    XOR(0, 0) => 0
+    XOR(0, 1) => 1
+    XOR(1, 0) => 1
+    XOR(1, 1) => 0
+    ANDN(11) => 1
+    ANDN(10) => 0
+    ANDN(01) => 0
+    ANDN(00) => 0
+    ORN(11) => 1
+    ORN(10) => 1
+    ORN(01) => 1
+    ORN(00) => 0
+    full_adder(in1 = 0, in2 = 0, carry_in = 0) =>
+      (sum = 0, carry_out = 0)
+    full_adder(in1 = 0, in2 = 1, carry_in = 0) =>
+      (sum = 1, carry_out = 0)
+    full_adder(in1 = 1, in2 = 0, carry_in = 0) =>
+      (sum = 1, carry_out = 0)
+    full_adder(in1 = 1, in2 = 1, carry_in = 0) =>
+      (sum = 0, carry_out = 1)
+    full_adder(in1 = 0, in2 = 0, carry_in = 1) =>
+      (sum = 1, carry_out = 0)
+    full_adder(in1 = 0, in2 = 1, carry_in = 1) =>
+      (sum = 0, carry_out = 1)
+    full_adder(in1 = 1, in2 = 0, carry_in = 1) =>
+      (sum = 0, carry_out = 1)
+    full_adder(in1 = 1, in2 = 1, carry_in = 1) =>
+      (sum = 1, carry_out = 1)
+    RCA(100, 200) => 300
+    RCA(1073741824, 1073741823) => 2147483647
+    RCA(1073741824, 1073741824)  => -2147483648
+    RCA(-2147483648, -2147483648) => 0
+    \end{lstlisting}
+  \section{課題４の議論}
+  {\large CLAの場合}
+
+  PFAで$g_i$, $p_i$を計算する。\\
+  $g_i = a_i \cdot b_i$,
+  $p_i = a_i + b_i$
+  で、これらは32bit全て並列で計算するので計１ゲート。
+
+  4bitCLA内のCLUで$G_i$, $P_i$を計算する。\\
+  $G_i = g_3 + p_3 \cdot g_2 + p_3 \cdot p_2 \cdot g_1 + p_3 \cdot p_2 \cdot p_1 \cdot g_0$,
+  $P_i = p_0 \cdot p_1 \cdot p_2 \cdot p_3$
+  よりこのときの最長パスは、$G_i$計算の４ゲートである。全８個の4bitCLAで並列計算できるので、計４ゲート。
+
+  下位16bitCLAでCarryOutを計算する。\\
+  $C_{out} = G_3 + G_2 \cdot P_3 + G_1 \cdot P_2 \cdot P_3 + G_0 \cdot P_1 \cdot P_2 \cdot P_3 + P_0 \cdot P_1 \cdot P_2 \cdot P_3 \cdot c_0$
+  であるので、上での$G_i$, $P_i$計算を考慮するとこのパスは５ゲートである。
+
+  上位16bitCLAで各4bitCLAへのCarryInを計算する。\\
+  最長パスは、上と同じCarryOutの計算により５ゲートである。
+  ただし最上位4bitCLAへのCarryIn計算には$G_i$計算回路と同じものを使うので、４ゲートである。
+  他の4bitCLAへのCarryIn計算はこれ以下のゲートで求められる。
+
+  4bitCLAで各桁へのCarryInを計算。\\
+  最長パスは最上位bitへの繰り上がりで、
+  $c_{3 + 4i} = g_{2 + 4i} + g_{1 + 4i} \cdot p_{2 + 4i} + g_{0 + 4i} \cdot p_{2 + 4i} \cdot p_{1 + 4i} + c_{0 + 4i} \cdot p_{2 + 4i} \cdot p_{1 + 4i} \cdot p_{0 + 4i}$
+  を計算する４ゲートである。
+
+  以上から合計はおよそ１８ゲートであると考えられる。RCAと比較すると約1/5倍のゲートの通過数で実行できる。
+  \section{感想}
+  CLAでのゲート通過数の求め方がいまいちよくわからず、自分なりの解釈で課題４を解いてしまったので合っているかわかりませんが、CLAで行なっていることは理解できたと思っています。
+\end{document}
