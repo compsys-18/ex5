@@ -1,4 +1,5 @@
 \documentclass{jarticle}
+\usepackage{amsmath}
 \usepackage{listings}
 \lstset{
   basicstyle={\ttfamily},
@@ -63,31 +64,49 @@
   \section{課題４の議論}
   {\large CLAの場合}
 
-  PFAで$g_i$, $p_i$を計算する。\\
-  $g_i = a_i \cdot b_i$,
-  $p_i = a_i + b_i$
-  で、これらは32bit全て並列で計算するので計１ゲート。
+  PFAで$g_i$, $p_i$を計算する。
+  \begin{flalign*}
+    g_i & = a_i \cdot b_i\,\\
+    p_i & = a_i + b_i
+  \end{flalign*}
+  で、これらは32bit全て並列で計算するので計１ゲート。\\
 
-  4bitCLA内のCLUで$G_i$, $P_i$を計算する。\\
-  $G_i = g_3 + p_3 \cdot g_2 + p_3 \cdot p_2 \cdot g_1 + p_3 \cdot p_2 \cdot p_1 \cdot g_0$,
-  $P_i = p_0 \cdot p_1 \cdot p_2 \cdot p_3$
-  よりこのときの最長パスは、$G_i$計算の４ゲートである。全８個の4bitCLAで並列計算できるので、計４ゲート。
+  4bitCLA内のCLUで$G_i$, $P_i$を計算する。
+  \begin{flalign*}
+    G_i & = g_3 + p_3 \cdot g_2 + p_3 \cdot p_2 \cdot g_1 + p_3 \cdot p_2 \cdot p_1 \cdot g_0\,\\
+    P_i & = p_0 \cdot p_1 \cdot p_2 \cdot p_3
+  \end{flalign*}
+  よりこのときの最長パスは、$G_i$計算の４ゲートである。全８個の4bitCLAで並列計算できるので、４ゲート。\\
 
-  下位16bitCLAでCarryOutを計算する。\\
-  $C_{out} = G_3 + G_2 \cdot P_3 + G_1 \cdot P_2 \cdot P_3 + G_0 \cdot P_1 \cdot P_2 \cdot P_3 + P_0 \cdot P_1 \cdot P_2 \cdot P_3 \cdot c_0$
-  であるので、上での$G_i$, $P_i$計算を考慮するとこのパスは５ゲートである。
+  下位16bitCLAでCarryOutを計算する。
+  \begin{flalign*}
+    C_{out} & = G_3 + G_2 \cdot P_3 + G_1 \cdot P_2 \cdot P_3 + G_0 \cdot P_1 \cdot P_2 \cdot P_3 + P_0 \cdot P_1 \cdot P_2 \cdot P_3 \cdot c_0\,\\
+    C_1 & = G_0 + P_0 \cdot c_0\,\\
+    C_2 & = G_1 + G_0 \cdot P_1 + P_0 \cdot P_1 \cdot c_0\,\\
+    C_3 & = G_2 + G_1 \cdot P_2 + G_0 \cdot P_1 \cdot P_2 + P_0 \cdot P_1 \cdot P_2 \cdot c_0
+  \end{flalign*}
+  以上から、上での$G_i$, $P_i$計算を考慮するとこの最長パスは$C_{out}$の５ゲートである。\\
 
   上位16bitCLAで各4bitCLAへのCarryInを計算する。\\
   最長パスは、上と同じCarryOutの計算により５ゲートである。
-  ただし最上位4bitCLAへのCarryIn計算には$G_i$計算回路と同じものを使うので、４ゲートである。
-  他の4bitCLAへのCarryIn計算はこれ以下のゲートで求められる。
+  \begin{flalign*}
+    C_{out}' & = G_7 + G_6 \cdot P_7 + G_5 \cdot P_6 \cdot P_7 + G_4 \cdot P_5 \cdot P_6 \cdot P_7 + P_4 \cdot P_5 \cdot P_6 \cdot P_7 \cdot C_{out}\,\\
+    C_5 & = G_4 + P_4 \cdot C_{out}\,\\
+    C_6 & = G_5 + G_4 \cdot P_5 + P_4 \cdot P_5 \cdot C_{out}\,\\
+    C_7 & = G_6 + G_5 \cdot P_6 + G_4 \cdot P_5 \cdot P_6 + P_4 \cdot P_5 \cdot P_6 \cdot C_{out}
+  \end{flalign*}
+  以上より、最上位4bitCLAへのCarryIn計算は４ゲートである。
+  他の4bitCLAへのCarryIn計算はこれ以下のゲートで求められる。\\
 
-  4bitCLAで各桁へのCarryInを計算。\\
-  最長パスは最上位bitへの繰り上がりで、
-  $c_{3 + 4i} = g_{2 + 4i} + g_{1 + 4i} \cdot p_{2 + 4i} + g_{0 + 4i} \cdot p_{2 + 4i} \cdot p_{1 + 4i} + c_{0 + 4i} \cdot p_{2 + 4i} \cdot p_{1 + 4i} \cdot p_{0 + 4i}$
-  を計算する４ゲートである。
+  4bitCLAで各桁へのCarryInを計算。
+  \begin{flalign*}
+    c_{1 + 4i} & = g_{0 + 4i} + p_{0 + 4i} \cdot c_{0 + 4i}\\
+    c_{2 + 4i} & = g_{1 + 4i} + g_{0 + 4i} \cdot p_{1 + 4i} + p_{1 + 4i} \cdot p_{0 + 4i} \cdot c_{0 + 4i}\\
+    c_{3 + 4i} & = g_{2 + 4i} + g_{1 + 4i} \cdot p_{2 + 4i} + g_{0 + 4i} \cdot p_{2 + 4i} \cdot p_{1 + 4i} + c_{0 + 4i} \cdot p_{2 + 4i} \cdot p_{1 + 4i} \cdot p_{0 + 4i}
+  \end{flalign*}
+  最長パスは最上位bitへの繰り上がりで、$G_i$計算回路から４ゲートである。
 
-  以上から合計はおよそ１８ゲートであると考えられる。RCAと比較すると約1/5倍のゲートの通過数で実行できる。
+  以上から合計はおよそ１９ゲートで各桁にCarryが行き渡ると考えられる。RCAと比較すると約1/5倍のゲートの通過数で実行できる。
   \section{感想}
   CLAでのゲート通過数の求め方がいまいちよくわからず、自分なりの解釈で課題４を解いてしまったので合っているかわかりませんが、CLAで行なっていることは理解できたと思っています。
 \end{document}
